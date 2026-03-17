@@ -1,0 +1,15 @@
+berserk
+pandas
+numpy
+python-chess
+pyarrow
+matplotlib
+scikit-learn
+scipy
+tqdm
+python-dotenv
+jupyterlab
+ipykernel
+black
+ruff
+pytest
