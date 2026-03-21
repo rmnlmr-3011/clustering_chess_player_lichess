@@ -212,23 +212,167 @@ def _time_loss_rate(df: pd.DataFrame) -> pd.Series:
 
 ####################################################################################################
 
-def _add_streak_features(df, features):
-    features["score_when_winstreak"] = _score_when_streak(df, streak_type="win")
-    features["score_when_losestreak"] = _score_when_streak(df, streak_type="lose")
-    features["streak_resilience_bias"] = _streak_resilience_bias(df)
-    features["abandon_rate_when_losestreak"] = _abandon_rate_when_streak(df, streak_type="lose")
-    features["time_loss_rate_when_losestreak"] = _time_loss_rate_when_streak(df, streak_type="lose")
-    features["delay_ratio_when_winstreak"] = _delay_ratio_when_streak(df, streak_type="win")
-    features["delay_ratio_when_losestreak"] = _delay_ratio_when_streak(df, streak_type="lose")
+
+# Seuils permettant de considérer une streak comme winstreak ou losestreak
+WINSTREAK_THRESHOLD = 2
+LOSESTREAK_THRESHOLD = -2
+
+
+def _add_streak_features(df: pd.DataFrame, features: pd.DataFrame) -> pd.DataFrame:
+    features["score_when_winstreak"] = _score_when_winstreak(df)
+    features["score_when_losestreak"] = _score_when_losestreak(df)
+    features["streak_resilience_bias"] = (
+        features["score_when_winstreak"] - features["score_when_losestreak"]
+    )
+    features["abandon_rate_when_losestreak"] = _abandon_rate_when_losestreak(df)
+    features["time_loss_rate_when_losestreak"] = _time_loss_rate_when_losestreak(df)
+    features["delay_ratio_when_winstreak"] = _delay_ratio_when_winstreak(df)
+    features["delay_ratio_when_losestreak"] = _delay_ratio_when_losestreak(df)
     return features
+
+
+def _score_when_winstreak(df: pd.DataFrame) -> pd.Series:
+    sub = df[df["streak_before"] >= WINSTREAK_THRESHOLD]
+    return sub.groupby("player_id")["result_player"].mean()
+
+
+def _score_when_losestreak(df: pd.DataFrame) -> pd.Series:
+    sub = df[df["streak_before"] <= LOSESTREAK_THRESHOLD]
+    return sub.groupby("player_id")["result_player"].mean()
+
+
+def _abandon_rate_when_losestreak(df: pd.DataFrame) -> pd.Series:
+    def compute(group: pd.DataFrame) -> float:
+        mask_ls = group["streak_before"] <= LOSESTREAK_THRESHOLD
+        denom = mask_ls.sum()
+        if denom == 0:
+            return np.nan
+        num = (
+            (group["termination_type"] == "resign")
+            & (group["result_player"] == 0)
+            & mask_ls
+        ).sum()
+        return num / denom
+
+    return df.groupby("player_id").apply(compute)
+
+
+def _time_loss_rate_when_losestreak(df: pd.DataFrame) -> pd.Series:
+    def compute(group: pd.DataFrame) -> float:
+        mask_ls = group["streak_before"] <= LOSESTREAK_THRESHOLD
+        denom = mask_ls.sum()
+        if denom == 0:
+            return np.nan
+        num = (
+            (group["termination_type"] == "timeout")
+            & (group["result_player"] == 0)
+            & mask_ls
+        ).sum()
+        return num / denom
+
+    return df.groupby("player_id").apply(compute)
+
+
+def _delay_ratio_when_winstreak(df: pd.DataFrame) -> pd.Series:
+    def compute(group: pd.DataFrame) -> float:
+        overall = group["delay_previous_game"].mean()
+        if pd.isna(overall) or overall == 0:
+            return np.nan
+
+        delay_ws = group.loc[
+            group["streak_before"] >= WINSTREAK_THRESHOLD,
+            "delay_previous_game"
+        ].mean()
+
+        if pd.isna(delay_ws):
+            return np.nan
+
+        return delay_ws / overall
+
+    return df.groupby("player_id").apply(compute)
+
+
+def _delay_ratio_when_losestreak(df: pd.DataFrame) -> pd.Series:
+    def compute(group: pd.DataFrame) -> float:
+        overall = group["delay_previous_game"].mean()
+        if pd.isna(overall) or overall == 0:
+            return np.nan
+
+        delay_ls = group.loc[
+            group["streak_before"] <= LOSESTREAK_THRESHOLD,
+            "delay_previous_game"
+        ].mean()
+
+        if pd.isna(delay_ls):
+            return np.nan
+
+        return delay_ls / overall
+
+    return df.groupby("player_id").apply(compute)
 
 ####################################################################################################
 
-def _add_global_rhythm_features(df, features):
+def _add_global_rhythm_features(df: pd.DataFrame, features: pd.DataFrame) -> pd.DataFrame:
+    features["cv_games_interval"] = _cv_games_interval(df)
     features["cv_games_per_day"] = _cv_games_per_day(df)
     features["cv_games_per_week"] = _cv_games_per_week(df)
-    features["cv_games_interval"] = _cv_games_interval(df)
     return features
+
+def _cv_games_interval(df: pd.DataFrame) -> pd.Series:
+    def compute(x):
+        delays = x["delay_previous_game"].dropna()
+        if len(delays) == 0:
+            return np.nan
+
+        mean = delays.mean()
+        std = delays.std()
+
+        if mean == 0 or pd.isna(mean):
+            return np.nan
+
+        return std / mean
+
+    return df.groupby("player_id").apply(compute)
+
+def _cv_games_per_day(df: pd.DataFrame) -> pd.Series:
+
+    daily = (
+        df[["player_id", "day_date_utc", "day_n_games"]]
+        .drop_duplicates()
+    )
+
+    def compute(x):
+        values = x["day_n_games"]
+
+        mean = values.mean()
+        std = values.std()
+
+        if mean == 0 or pd.isna(mean):
+            return np.nan
+
+        return std / mean
+
+    return daily.groupby("player_id").apply(compute)
+
+def _cv_games_per_week(df: pd.DataFrame) -> pd.Series:
+
+    weekly = (
+        df[["player_id", "week_id", "week_n_games"]]
+        .drop_duplicates()
+    )
+
+    def compute(x):
+        values = x["week_n_games"]
+
+        mean = values.mean()
+        std = values.std()
+
+        if mean == 0 or pd.isna(mean):
+            return np.nan
+
+        return std / mean
+
+    return weekly.groupby("player_id").apply(compute)
 
 ####################################################################################################
 
@@ -239,6 +383,85 @@ def _add_session_structure_features(df, features):
     features["cv_games_per_session"] = _cv_games_per_session(df)
     return features
 
+
+def _mean_games_per_session(df: pd.DataFrame) -> pd.Series:
+
+    sessions = (
+        df.groupby(["player_id", "session_id"])
+        .agg(n_games=("game_id", "count"))
+        .reset_index()
+    )
+
+    return sessions.groupby("player_id")["n_games"].mean()
+
+
+def _cv_games_per_session(df: pd.DataFrame) -> pd.Series:
+
+    sessions = (
+        df.groupby(["player_id", "session_id"])
+        .agg(n_games=("game_id", "count"))
+        .reset_index()
+    )
+
+    def compute(x):
+        mean = x.mean()
+        std = x.std()
+
+        if mean == 0 or pd.isna(mean):
+            return np.nan
+
+        return std / mean
+
+    return sessions.groupby("player_id")["n_games"].apply(compute)
+
+
+def _cv_sessions_interval(df: pd.DataFrame) -> pd.Series:
+
+    sessions = (
+        df.groupby(["player_id", "session_id"])
+        .agg(session_delay=("session_delay", "first"))
+        .reset_index()
+    )
+
+    def compute(x):
+        delays = x["session_delay"].dropna()
+
+        if len(delays) == 0:
+            return np.nan
+
+        mean = delays.mean()
+        std = delays.std()
+
+        if mean == 0 or pd.isna(mean):
+            return np.nan
+
+        return std / mean
+
+    return sessions.groupby("player_id").apply(compute)
+
+
+def _entropy_sessions_interval(df: pd.DataFrame) -> pd.Series:
+
+    sessions = (
+        df.groupby(["player_id", "session_id"])
+        .agg(delay=("session_discrete_delay", "first"))
+        .reset_index()
+    )
+
+    def compute(x):
+        values = x["delay"].dropna()
+
+        if len(values) == 0:
+            return np.nan
+
+        probs = values.value_counts(normalize=True)
+
+        return -np.sum(probs * np.log(probs))
+
+    return sessions.groupby("player_id").apply(compute)
+
+
+
 ####################################################################################################
 
 def _add_context_features(df, features):
@@ -246,6 +469,40 @@ def _add_context_features(df, features):
     features["weekday_bias"] = _weekday_bias(df)
     features["color_bias"] = _color_bias(df)
     return features
+
+
+def _color_bias(df: pd.DataFrame) -> pd.Series:
+
+    def compute(x):
+        white = x[x["color_player"] == "white"]["result_player"]
+        black = x[x["color_player"] == "black"]["result_player"]
+
+        if len(white) == 0 or len(black) == 0:
+            return np.nan
+
+        return white.mean() - black.mean()
+
+    return df.groupby("player_id").apply(compute)
+
+
+def _increment_game_ratio(df: pd.DataFrame) -> pd.Series:
+
+    return df.groupby("player_id")["has_increment"].mean()
+
+
+def _weekday_bias(df: pd.DataFrame) -> pd.Series:
+
+    def compute(x):
+        weekday = x[x["weekday"] <= 4]["result_player"]
+        weekend = x[x["weekday"] >= 5]["result_player"]
+
+        if len(weekday) == 0 or len(weekend) == 0:
+            return np.nan
+
+        return weekday.mean() - weekend.mean()
+
+    return df.groupby("player_id").apply(compute)
+
 
 ####################################################################################################
 
