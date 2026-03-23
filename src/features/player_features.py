@@ -513,6 +513,76 @@ def _add_performance_dynamics_features(df, features):
     features["games_per_week_performance_slope"] = _games_per_week_performance_slope(df)
     return features
 
+
+# Fonction pour calculer la pente de régression linéaire, commune à chaque feature de cette catégorie 
+def _safe_slope(x, y):
+    if len(x) < 2:
+        return np.nan
+
+    x = np.array(x)
+    y = np.array(y)
+
+    if np.std(x) == 0:
+        return np.nan
+
+    return np.polyfit(x, y, 1)[0]
+
+
+def _games_per_day_performance_slope(df):
+
+    daily = (
+        df[["player_id", "day_date_utc", "day_n_games", "day_score"]]
+        .drop_duplicates()
+    )
+
+    def compute(x):
+        return _safe_slope(x["day_n_games"], x["day_score"])
+
+    return daily.groupby("player_id").apply(compute)
+
+
+def _games_per_week_performance_slope(df):
+
+    weekly = (
+        df[["player_id", "week_id", "week_n_games", "week_score"]]
+        .drop_duplicates()
+    )
+
+    def compute(x):
+        return _safe_slope(x["week_n_games"], x["week_score"])
+
+    return weekly.groupby("player_id").apply(compute)
+
+
+def _within_session_performance_slope(df):
+
+    def compute_session(x):
+        return _safe_slope(x["session_position"], x["result_player"])
+
+    slopes = (
+        df.groupby(["player_id", "session_id"])
+        .apply(compute_session)
+        .dropna()
+    )
+
+    return slopes.groupby("player_id").mean()
+
+
+def _session_length_performance_slope(df):
+
+    sessions = (
+        df.groupby(["player_id", "session_id"])
+        .agg(
+            n_games=("game_id", "count"),
+            session_score=("result_player", "mean")
+        )
+        .reset_index()
+    )
+
+    def compute(x):
+        return _safe_slope(x["n_games"], x["session_score"])
+
+    return sessions.groupby("player_id").apply(compute)
 ####################################################################################################
 
 def _add_general_progression_features(df, features):
