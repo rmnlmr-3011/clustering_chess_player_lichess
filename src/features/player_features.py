@@ -1,4 +1,4 @@
-# Fonction pour calculer les features du joueur. La structure du code décompose ces features en 8 catégories :
+# Fonction pour calculer les features du joueur. La structure du code décompose ces features en 7 catégories :
 
     # Style de jeu
         # - mean_ply_count
@@ -43,12 +43,6 @@
         # - games_per_day_performance_slope
         # - games_per_week_performance_slope
 
-    # Progression générale
-        # - progression_volatility
-        # - plateau_ratio
-        # - mean_plateau_length
-
-
 import numpy as np
 import pandas as pd
 
@@ -63,7 +57,6 @@ def build_player_features(df: pd.DataFrame) -> pd.DataFrame:
     features = _add_session_structure_features(df, features)
     features = _add_context_features(df, features)
     features = _add_performance_dynamics_features(df, features)
-    features = _add_general_progression_features(df, features)
 
     return features.reset_index()
 
@@ -516,12 +509,15 @@ def _add_performance_dynamics_features(df, features):
 
 # Fonction pour calculer la pente de régression linéaire, commune à chaque feature de cette catégorie 
 def _safe_slope(x, y):
+    x = np.array(x, dtype=float)
+    y = np.array(y, dtype=float)
+
+    mask = ~(np.isnan(x) | np.isnan(y))
+    x = x[mask]
+    y = y[mask]
+
     if len(x) < 2:
         return np.nan
-
-    x = np.array(x)
-    y = np.array(y)
-
     if np.std(x) == 0:
         return np.nan
 
@@ -583,12 +579,6 @@ def _session_length_performance_slope(df):
         return _safe_slope(x["n_games"], x["session_score"])
 
     return sessions.groupby("player_id").apply(compute)
-####################################################################################################
 
-def _add_general_progression_features(df, features):
-    features["progression_volatility"] = _progression_volatility(df)
-    features["plateau_ratio"] = _plateau_ratio(df)
-    features["mean_plateau_length"] = _mean_plateau_length(df)
-    return features
 
 
