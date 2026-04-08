@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from src.ingestion.opening import map_eco_to_opening_family
+
 
 # Donne le résultat de la partie du point de vue d'un joueur (1.0 = victoire, 0.5 = nul, 0.0 = défaite)
 
@@ -57,7 +59,7 @@ def game_to_player_rows(flat_game: dict[str, Any]) -> list[dict[str, Any]]:
             # Détails de la partie
             "termination_type": flat_game["status"],
             "has_increment": flat_game["has_increment"],
-            "opening_family": flat_game["opening_name"].split(":")[0] if flat_game["opening_name"] else None,
+            "opening_family": map_eco_to_opening_family(flat_game["opening_eco"]),
             "opening_eco": flat_game["opening_eco"],
             "opening_name": flat_game["opening_name"],
             "ply_count": flat_game["ply_count"],

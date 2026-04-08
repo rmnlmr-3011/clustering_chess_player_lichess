@@ -81,7 +81,7 @@ def _add_style_features(df, features):
     return features
 
 
-OPENING_COL = "opening_family"   # variable temporaire
+OPENING_COL = "opening_family"
 
 
 def _mean_ply_count(df: pd.DataFrame) -> pd.Series:

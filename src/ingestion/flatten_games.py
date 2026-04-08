@@ -1,11 +1,18 @@
 # Fonction permettant de convertir una partie brute en une structure plate
 
+from src.ingestion.opening import normalize_eco
+import pandas as pd
+
 def flatten_game(game: dict) -> dict:
     white = game.get("players", {}).get("white", {})
     black = game.get("players", {}).get("black", {})
     opening = game.get("opening", {})
     clock = game.get("clock", {})
     moves_str = game.get("moves", "")
+
+    created_at = game.get("createdAt")
+    if isinstance(created_at, str):
+        created_at = pd.to_datetime(created_at, utc=True)
 
     white_rating = white.get("rating")
     black_rating = black.get("rating")
@@ -14,7 +21,7 @@ def flatten_game(game: dict) -> dict:
 
     return {
         "game_id": game.get("id"),
-        "datetime_utc": game.get("createdAt"),
+        "datetime_utc": created_at,
         "perf": game.get("perf"),
         "speed": game.get("speed"),
         "rated": game.get("rated"),
@@ -43,7 +50,7 @@ def flatten_game(game: dict) -> dict:
             else None
         ),
 
-        "opening_eco": opening.get("eco"),
+        "opening_eco": normalize_eco(opening.get("eco")),
         "opening_name": opening.get("name"),
 
         "clock_initial": clock.get("initial"),
