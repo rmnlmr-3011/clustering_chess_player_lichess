@@ -106,3 +106,66 @@ FEATURE_GROUP_SIZES = {
     group_name: len(group_features)
     for group_name, group_features in FEATURE_GROUPS.items()
 }
+
+# === Sorties finales étape 5 ===
+
+FEATURES_TO_DROP_UNIVARIATE = []
+
+FEATURES_TO_DROP_CORR = [
+    "opening_concentration",
+    "cv_sessions_interval",
+]
+
+FEATURES_TO_TRANSFORM = [
+    "cv_games_interval",
+    "cv_games_per_week",
+    "mean_games_per_session",
+]
+
+SELECTED_FEATURE_COLS_FINAL = [
+    "mean_ply_count",
+    "opening_diversity",
+    "draw_ratio",
+    "score_when_winstreak",
+    "score_when_losestreak",
+    "delay_ratio_when_winstreak",
+    "delay_ratio_when_losestreak",
+    "cv_games_interval",
+    "cv_games_per_day",
+    "cv_games_per_week",
+    "entropy_sessions_interval",
+    "mean_games_per_session",
+    "cv_games_per_session",
+    "weekday_bias",
+    "color_bias",
+]
+
+FEATURE_GROUPS_UPDATED = {
+    "style": [
+        "mean_ply_count",
+        "opening_diversity",
+    ],
+    "endgame": [
+        "draw_ratio",
+    ],
+    "streaks": [
+        "score_when_winstreak",
+        "score_when_losestreak",
+        "delay_ratio_when_winstreak",
+        "delay_ratio_when_losestreak",
+    ],
+    "global_rhythm": [
+        "cv_games_per_day",
+        "cv_games_per_week",
+        "cv_games_interval",
+    ],
+    "sessions": [
+        "entropy_sessions_interval",
+        "mean_games_per_session",
+        "cv_games_per_session",
+    ],
+    "context": [
+        "weekday_bias",
+        "color_bias",
+    ],
+}

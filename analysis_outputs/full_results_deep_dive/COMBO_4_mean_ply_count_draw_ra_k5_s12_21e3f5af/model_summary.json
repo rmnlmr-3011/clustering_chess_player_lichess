@@ -1,0 +1,21 @@
+{
+  "feature_set_name": "COMBO_4_mean_ply_count__draw_ratio__cv_games_interval__entropy_sessions_interval",
+  "k": 5,
+  "best_seed": 12,
+  "n_features": 4,
+  "features": [
+    "mean_ply_count",
+    "draw_ratio",
+    "cv_games_interval",
+    "entropy_sessions_interval"
+  ],
+  "silhouette": 0.2077032629703818,
+  "inertia": 302.01737743413946,
+  "min_cluster_size": 34,
+  "max_cluster_size": 80,
+  "imbalance_ratio": 0.425,
+  "elo_slope_per_game_range": 0.3437260901075312,
+  "elo_slope_per_game_std_between_clusters": 0.1210621014697405,
+  "elo_slope_per_game_std_between_clusters_weighted": 0.1037546368116434,
+  "elo_slope_per_game_std_within_clusters_weighted": 0.3522552754395213
+}
