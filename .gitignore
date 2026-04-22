@@ -33,6 +33,7 @@ Thumbs.db
 # Data files (large, generated or sensitive)
 data/raw/
 data/enriched/
+data/selected/
 
 
 # Jupyter notebook cache
