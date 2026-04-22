@@ -34,6 +34,7 @@ Thumbs.db
 data/raw/
 data/enriched/
 data/selected/
+data/selected/player_games_selected.json
 
 
 # Jupyter notebook cache
