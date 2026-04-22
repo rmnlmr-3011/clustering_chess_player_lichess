@@ -1,3 +1,5 @@
+# Code permettant de construire le dataset final en combinant les features des joueurs et les labels de progression, en s'assurant que les données sont alignées correctement sur les identifiants des joueurs. Le résultat est un DataFrame prêt à être utilisé pour l'analyse de clustering et l'évaluation des performances.
+
 from src.features.player_features import build_player_features
 from src.labels.progression import build_progression_labels
 

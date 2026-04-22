@@ -1,3 +1,5 @@
+# Code pour effectuer une analyse univariée des features, identifier les features à transformer, calculer les corrélations avec les targets de progression, visualiser les relations entre features et targets, détecter les paires de features fortement corrélées, et construire un résumé des décisions de sélection et de transformation des features.
+
 import pandas as pd
 import matplotlib.pyplot as plt
 

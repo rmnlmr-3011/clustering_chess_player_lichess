@@ -1,7 +1,49 @@
+# Python environment
 .venv/
+venv/
+env/
+
+# Python cache and compiled files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+
+# Python package distribution
+*.egg-info/
+dist/
+build/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment variables
 .env
+.env.local
+
+# Data files (large, generated or sensitive)
 data/raw/
 data/enriched/
-data/selected
+
+
+# Jupyter notebook cache
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/

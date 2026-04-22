@@ -1,3 +1,5 @@
+# Code permettant d'exécuter KMeans avec plusieurs seeds pour chaque k, et de comparer les résultats en termes de silhouette score, inertia, et taille des clusters. Les résultats sont ensuite organisés dans un DataFrame pour une analyse plus facile.
+
 import numpy as np
 import pandas as pd
 

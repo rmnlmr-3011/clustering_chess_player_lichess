@@ -1,3 +1,5 @@
+# Code permettant de construire la matrice de clustering X à partir des features sélectionnées, d'imputer les valeurs manquantes, d'appliquer les transformations décidées, de standardiser les features, et de construire un résumé de l'étape de préprocessing. Des vérifications sont également incluses pour s'assurer que les transformations ont l'effet escompté sur la skewness des features concernées.
+
 import numpy as np
 import pandas as pd
 

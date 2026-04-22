@@ -1,0 +1,8 @@
+{
+  "min_games_after_burnin": 200,
+  "max_games": 1000,
+  "burnin_games": 20,
+  "min_initial_elo": 1000,
+  "max_initial_elo": 1400,
+  "observation_window_days": 183
+}

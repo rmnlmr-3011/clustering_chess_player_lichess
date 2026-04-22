@@ -1,3 +1,5 @@
+# Code pour analyser les clusters obtenus, en attachant les labels au DataFrame original, en résumant les caractéristiques de chaque cluster, et en calculant des métriques de progression spécifiques pour évaluer la séparation et l'homogénéité des clusters.
+
 import pandas as pd
 import numpy as np
 
